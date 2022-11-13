@@ -15,8 +15,8 @@
             "type": "node",
             "request": "launch",
             "name": "Dev",
-            "runtimeExecutable": "yarn",
-            "runtimeArgs": ["dev"],
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev"],
             "cwd": "${workspaceFolder}"
         }
     ],
