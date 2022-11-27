@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 
 const Home: NextPage = () => {
 
-  const [name, setName] = useState('Jane Dillow')
+  const [name, setName] = useState('Jane Doe')
 
   const getGames = async () => {
     const nameObj = await (await fetch('/api/getLatestGames')).json()
