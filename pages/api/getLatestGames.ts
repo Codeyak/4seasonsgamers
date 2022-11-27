@@ -12,6 +12,6 @@ export default async function handler(
 	await bggAPIServiceInstance.getUserGamesOwned(currentUser?.bggUsername || 'baldgoat')
 		.then((result) => {
 			//TODO add error handling
-			res.status(200).json({status: 'ok'})
+			res.status(200).json({ status: 'ok', data:  result })
 		})
 }
