@@ -1,5 +1,4 @@
 import got, { RequestError } from 'got'
-import { createRecords } from 'thin-backend'
 import xlm2js from 'xml2js'
 
 export interface IbggAPIService {
@@ -11,41 +10,70 @@ export const bggAPIService = ():IbggAPIService => {
 
 	const getUserGamesOwned = async (username: string):Promise<unknown> => {
 		const requestUrl = `${baseUrl}/collection/?username=${username}&own=1`
+		const body = await got.get(requestUrl,
+			{
+				responseType: 'text',
+				resolveBodyOnly: true
+			}
+		)
+		const { items: { item: ownerGames } } = await _parseXML(body)
 
-		return got.get(requestUrl)
-			.then((result) => {
-				const parser = new xlm2js.Parser()
-				const body = result.body
-				return parser.parseStringPromise(body)
-					.then(async (result) => {
-						const bggItems = result.items.item
-						console.log(bggItems)
-						const userGames = bggItems.map((bggGame) => {
-							return {
-								id: parseInt(bggGame['$'].objectid),
-								name: bggGame.name[0]._,
-								image: bggGame.image[0],
-								thumbnail: bggGame.thumbnail[0]
-							}
-						})
-						try {
-							// const gamesCreated = await createRecords('games', userGames)
-						} catch (error) {
-							console.log('ERROR', error)
-						}
-						return true
-				})
-		})
+		const bggGames = [] as []
+		for ( let i = 0; i < ownerGames.length; i++ ) {
+			const gameId = ownerGames[ i ].$.objectid
+			const gameData = await _getGameData( gameId )
+			const categories = gameData?.boardgames.boardgame[ 0 ].boardgamecategory
+			const mechanics = gameData?.boardgames.boardgame[0].boardgamemechanic
+			_setCategories( categories, gameId )
+			_setMechanics(mechanics, gameId)
+		}
+
+		return bggGames;
 	}
 
-	const getGameData = async (id:number) => {
-		//TODO get full data for a game
+	const _getGameData = async (id: number) => {
+		const requestUrl = `${baseUrl}/boardgame/${id}`
+		const body = await got.get(requestUrl,
+			{
+				responseType: 'text',
+				resolveBodyOnly: true
+			}
+		)
+		const gameData = await _parseXML(body)
+		return gameData
+	}
+
+	const _setCategories = (categories:[], gameId:number) => {
+		//TODO add to categories, if not exists
+		const categoriesParsed = categories.map( ( category ) => {
+			return {
+				id: category.$.objectid,
+				name: category._
+			}
+			//TODO add to game_categories using gameId
+		} )
+		console.log('PARSED CATEGORIES', categoriesParsed)
+	}
+
+	const _setMechanics = ( mechanics: [], gameId: number ) => {
+		//TODO add to mechanics, if not exists
+		const mechanicsParsed = mechanics.map( ( mechanic ) => {
+			return {
+				id: mechanic.$.objectid,
+				name: mechanic._
+			}
+			//TODO add to game_mechanics
+		} )
+		console.log('MECHANICS PARSED', mechanicsParsed)
 	}
 
 	const _parseXML = async (body:string) => {
 		const parser = new xlm2js.Parser()
-		const json = await parser.parseString(body)
-		return json
+		let bggJson;
+		await parser.parseString(body, (err, result) => {
+			bggJson = result
+		})
+		return bggJson
 	}
 
 	return {
