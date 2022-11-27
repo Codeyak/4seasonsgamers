@@ -1,5 +1,4 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getCurrentUser } from "thin-backend";
 import { bggAPIService } from "~/services/bggAPIService";
 
 const bggAPIServiceInstance = bggAPIService()
@@ -8,6 +7,7 @@ export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse
 ) {
+	//TODO Define getCurrentUser
 	const currentUser = await getCurrentUser()
 	await bggAPIServiceInstance.getUserGamesOwned(currentUser?.bggUsername || 'baldgoat')
 		.then((result) => {
