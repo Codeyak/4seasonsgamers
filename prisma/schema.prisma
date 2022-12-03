@@ -1,0 +1,78 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+model Gamers {
+  id Int @id @default(autoincrement())
+  firstName String
+  lastName String
+  bggUsername String @unique
+  games GameGamers[]
+}
+
+model Games {
+  id Int @id @unique
+  name String
+  publisher String?
+  yearPublished Int?
+  minPlayers Int?
+  maxPlayers Int?
+  suggestedNumPlayers Int?
+  playingTime Int?
+  minPlayingTime Int?
+  maxPlayingTime Int?
+  description String? @db.Text
+  thumbnail String?
+  image String?
+  categories GameCategories[]
+  mechanics GameMechanics[]
+  gamers GameGamers[]
+}
+
+model GameGamers {
+  id Int @id @default(autoincrement())
+  gamerId Int
+  gameId Int
+  games Games @relation(fields: [gameId], references: [id])
+  gamers Gamers @relation(fields: [gamerId], references: [id])
+}
+
+model Mechanics {
+  id Int @id @unique
+  name String
+  games GameMechanics[]
+}
+
+model GameMechanics {
+  id Int @id @default(autoincrement())
+  gameId Int
+  mechanicId Int
+  games Games @relation(fields: [gameId], references: [id])
+  mechanics Mechanics @relation(fields: [mechanicId], references: [id])
+}
+
+model Categories {
+  id Int @id @unique
+  name String
+  games GameCategories[]
+}
+
+model GameCategories {
+  id Int @id @default(autoincrement())
+  games Games @relation(fields: [gameId], references: [id])
+  categories Categories @relation(fields: [categoryId], references: [id])
+  gameId Int
+  categoryId Int
+}
+
+
