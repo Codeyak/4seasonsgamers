@@ -1,5 +1,6 @@
 import got, { RequestError } from 'got'
 import xlm2js from 'xml2js'
+import { Gamers } from '@prisma/client'
 
 export interface IbggAPIService {
 	getUserGamesOwned: (username: string) => Promise<unknown>
@@ -66,6 +67,8 @@ export const bggAPIService = ():IbggAPIService => {
 		} )
 		console.log('MECHANICS PARSED', mechanicsParsed)
 	}
+
+	const _addGamer = (gamer)
 
 	const _parseXML = async (body:string) => {
 		const parser = new xlm2js.Parser()
