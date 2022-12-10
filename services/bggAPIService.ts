@@ -24,7 +24,7 @@ export const bggAPIService = ():IbggAPIService => {
 		return allGames
 	}
 
-	const _getUserGamesOwned = async ( username: string ): [] => {
+	const _getUserGamesOwned = async ( username: string ): Promise<Array> => {
 
 		const requestUrl = `${baseUrl}/collection/?username=${username}&own=1`
 		const body = await got.get(requestUrl,
