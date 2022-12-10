@@ -1,14 +1,31 @@
 import got, { RequestError } from 'got'
 import xlm2js from 'xml2js'
+import { dbService } from './dbService'
+import { Game, Gamer } from '@prisma/client'
+
+const db = new dbService()
 
 export interface IbggAPIService {
-	getUserGamesOwned: (username: string) => Promise<unknown>
+	getAllGames: ( username: string ) => Promise<Game[]>
 }
 
 export const bggAPIService = ():IbggAPIService => {
 	const baseUrl = 'https://api.geekdo.com/xmlapi'
 
-	const getUserGamesOwned = async (username: string):Promise<unknown> => {
+	const getAllGames = async ():Promise<Game[]> => {
+		const gamers:Array<Gamer> = await db.getGamers()
+		const allGames:Array<Game> = []
+		for (let i = 0; i < gamers.length; i++) {
+			const games:Array<Game> = await _getUserGamesOwned(gamers[i].bggUsername)
+			allGames.concat(games)
+		}
+		//TODO do the db writes see nested writes -- https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#nested-writes
+		//SEE Connect or Create for relationals https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#connect-or-create-a-record
+		return allGames
+	}
+
+	const _getUserGamesOwned = async ( username: string ): Promise<Array> => {
+
 		const requestUrl = `${baseUrl}/collection/?username=${username}&own=1`
 		const body = await got.get(requestUrl,
 			{
@@ -77,6 +94,6 @@ export const bggAPIService = ():IbggAPIService => {
 	}
 
 	return {
-		getUserGamesOwned
+		getAllGames
 	}
 }
