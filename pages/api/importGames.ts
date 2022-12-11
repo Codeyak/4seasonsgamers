@@ -8,7 +8,7 @@ export default async function handler(
 	res: NextApiResponse
 ) {
 	//TODO Define getCurrentUser
-	await bggAPIServiceInstance.getAllGames('baldgoat')
+	await bggAPIServiceInstance.importGames()
 		.then((result) => {
 			//TODO add error handling
 			res.status(200).json({ status: 'ok', data:  result })

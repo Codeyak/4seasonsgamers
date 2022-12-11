@@ -6,6 +6,7 @@ const prisma = new PrismaClient()
 export interface IdbService {
 	addGamer: ( gamer: Gamer ) => Promise<Gamer>
 	getGamers: () => Promise<Gamer[]>
+	addGame: (bggGame) => Promise<Game>
 }
 
 export class dbService implements IdbService {
@@ -24,5 +25,9 @@ export class dbService implements IdbService {
 			}
 		} ) as Gamer[]
 		return gamers
+	}
+
+	addGame = async (): Promise<Game> => {
+
 	}
 }

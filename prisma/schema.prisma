@@ -27,7 +27,6 @@ model Game {
   yearPublished Int?
   minPlayers Int?
   maxPlayers Int?
-  suggestedNumPlayers Int?
   playingTime Int?
   minPlayingTime Int?
   maxPlayingTime Int?

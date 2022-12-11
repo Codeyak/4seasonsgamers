@@ -5,8 +5,8 @@ import styles from '../styles/Home.module.css'
 import { useEffect, useState } from 'react'
 
 const Home: NextPage = () => {
-	const getGames = async () => {
-		const gamesObj = await (await fetch('/api/getLatestGames')).json()
+	const importGames = async () => {
+		const gamesObj = await (await fetch('/api/importGames')).json()
 		console.log('GAMES', gamesObj)
 	}
 
@@ -16,7 +16,7 @@ const Home: NextPage = () => {
 	}
 
 	useEffect(() => {
-		getGames()
+		importGames()
 	}, [])
 
 	return (

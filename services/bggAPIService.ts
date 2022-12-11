@@ -1,22 +1,24 @@
 import got, { RequestError } from 'got'
 import xlm2js from 'xml2js'
 import { dbService } from './dbService'
-import { Game, Gamer } from '@prisma/client'
+import { Category, Game, Gamer, Mechanic } from '@prisma/client'
+import { IFullGame } from '~/types/custom'
+import { filter } from 'lodash'
 
 const db = new dbService()
 
 export interface IbggAPIService {
-	getAllGames: ( username: string ) => Promise<Game[]>
+	importGames: () => Promise<Game[]>
 }
 
 export const bggAPIService = ():IbggAPIService => {
 	const baseUrl = 'https://api.geekdo.com/xmlapi'
 
-	const getAllGames = async ():Promise<Game[]> => {
+	const importGames = async ():Promise<Game[]> => {
 		const gamers:Array<Gamer> = await db.getGamers()
 		const allGames:Array<Game> = []
 		for (let i = 0; i < gamers.length; i++) {
-			const games:Array<Game> = await _getUserGamesOwned(gamers[i].bggUsername)
+			const games:Array<Game> = await _getUserGamesOwned(gamers[i].bggUsername, gamers[i].id)
 			allGames.concat(games)
 		}
 		//TODO do the db writes see nested writes -- https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#nested-writes
@@ -24,7 +26,7 @@ export const bggAPIService = ():IbggAPIService => {
 		return allGames
 	}
 
-	const _getUserGamesOwned = async ( username: string ): Promise<Array> => {
+	const _getUserGamesOwned = async ( username: string, userid: number ): Promise<IFullGame[]> => {
 
 		const requestUrl = `${baseUrl}/collection/?username=${username}&own=1`
 		const body = await got.get(requestUrl,
@@ -35,17 +37,38 @@ export const bggAPIService = ():IbggAPIService => {
 		)
 		const { items: { item: ownerGames } } = await _parseXML(body)
 
-		const bggGames = [] as []
+		const bggGames:IFullGame[] = []
 		for ( let i = 0; i < ownerGames.length; i++ ) {
-			const gameId = ownerGames[ i ].$.objectid
-			const gameData = await _getGameData( gameId )
-			const categories = gameData?.boardgames.boardgame[ 0 ].boardgamecategory
-			const mechanics = gameData?.boardgames.boardgame[0].boardgamemechanic
-			_setCategories( categories, gameId )
-			_setMechanics(mechanics, gameId)
+			const game:IFullGame = {}
+			game.id = ownerGames[ i ].$.objectid
+			const gameData = await _getGameData( game.id )
+			const bggGame = gameData.boardgames.boardgame[0]
+			game.name = _getGameName( bggGame.name )
+			game.publisher = bggGame.boardgamepublisher[ 0 ]._ || null
+			game.yearPublished = parseInt(bggGame.yearpublished[ 0 ]) || null
+			game.minPlayers = parseInt(bggGame.minplayers[ 0 ]) || null
+			game.maxPlayers = parseInt(bggGame.maxplayers[ 0 ]) || null
+			//TODO game.suggestedNumPlayers = bggGame.
+			game.playingTime = parseInt(bggGame.playingtime[ 0 ]) || null
+			game.minPlayingTime = parseInt(bggGame.minplaytime[ 0 ]) || null
+			game.maxPlayingTime = parseInt(bggGame.maxplaytime[ 0 ]) || null
+			game.description = bggGame.description || null
+			game.thumbnail = bggGame.thumbnail || null
+			game.image = bggGame.image[ 0 ]
+			game.categories = _getCategories( bggGame.boardgamecategory )
+			game.mechanics = _getMechanics( bggGame.boardgamemechanic )
+			game.gamer = userid
+			bggGames.push(game)
 		}
 
 		return bggGames;
+	}
+
+	const _getGameName = ( names: [] ) => {
+		const correctNames = filter( names, ( nameObj ) => {
+			return nameObj.$.primary === 'true'
+		} )
+		return correctNames[0]._
 	}
 
 	const _getGameData = async (id: number) => {
@@ -60,28 +83,25 @@ export const bggAPIService = ():IbggAPIService => {
 		return gameData
 	}
 
-	const _setCategories = (categories:[], gameId:number) => {
-		//TODO add to categories, if not exists
-		const categoriesParsed = categories.map( ( category ) => {
+	const _getCategories = ( categories:[] ): Category[] => {
+		return categories.map( ( category ) => {
 			return {
 				id: category.$.objectid,
 				name: category._
 			}
 			//TODO add to game_categories using gameId
 		} )
-		console.log('PARSED CATEGORIES', categoriesParsed)
 	}
 
-	const _setMechanics = ( mechanics: [], gameId: number ) => {
-		//TODO add to mechanics, if not exists
-		const mechanicsParsed = mechanics.map( ( mechanic ) => {
+	const _getMechanics = ( mechanics: [] ): Mechanic[] => {
+
+		return mechanics.map( ( mechanic ) => {
 			return {
 				id: mechanic.$.objectid,
 				name: mechanic._
 			}
 			//TODO add to game_mechanics
 		} )
-		console.log('MECHANICS PARSED', mechanicsParsed)
 	}
 
 	const _parseXML = async (body:string) => {
@@ -94,6 +114,6 @@ export const bggAPIService = ():IbggAPIService => {
 	}
 
 	return {
-		getAllGames
+		importGames
 	}
 }
