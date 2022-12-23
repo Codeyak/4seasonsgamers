@@ -2,7 +2,7 @@ import got, { RequestError } from 'got'
 import xlm2js from 'xml2js'
 import { dbService } from './dbService'
 import { Category, Game, Gamer, Mechanic } from '@prisma/client'
-import { IFullGame } from '~/types/custom'
+import { IBggGames, IFullGame, IOwnerGame, IRelationalCategory, IRelationalMechanic } from '~/types/custom'
 import { filter } from 'lodash'
 
 const db = new dbService()
@@ -14,12 +14,15 @@ export interface IbggAPIService {
 export const bggAPIService = ():IbggAPIService => {
 	const baseUrl = 'https://api.geekdo.com/xmlapi'
 
-	const importGames = async ():Promise<Game[]> => {
+	const importGames = async ():Promise<IFullGame[]> => {
 		const gamers:Array<Gamer> = await db.getGamers()
-		const allGames:Array<Game> = []
+		let allGames:Array<IFullGame> = []
 		for (let i = 0; i < gamers.length; i++) {
-			const games:Array<Game> = await _getUserGamesOwned(gamers[i].bggUsername, gamers[i].id)
-			allGames.concat(games)
+			const games:Array<IFullGame> = await _getUserGamesOwned(gamers[i].bggUsername, gamers[i].id)
+			allGames = [ ...allGames, ...games ]
+		}
+		for (let n = 0; n < allGames.length; n++) {
+			const insertedGame = await db.addGame(allGames[n])
 		}
 		//TODO do the db writes see nested writes -- https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#nested-writes
 		//SEE Connect or Create for relationals https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#connect-or-create-a-record
@@ -40,20 +43,19 @@ export const bggAPIService = ():IbggAPIService => {
 		const bggGames:IFullGame[] = []
 		for ( let i = 0; i < ownerGames.length; i++ ) {
 			const game:IFullGame = {}
-			game.id = ownerGames[ i ].$.objectid
+			game.id = parseInt(ownerGames[ i ].$.objectid)
 			const gameData = await _getGameData( game.id )
-			const bggGame = gameData.boardgames.boardgame[0]
+			const bggGame = gameData?.boardgames.boardgame[ 0 ]
 			game.name = _getGameName( bggGame.name )
 			game.publisher = bggGame.boardgamepublisher[ 0 ]._ || null
 			game.yearPublished = parseInt(bggGame.yearpublished[ 0 ]) || null
 			game.minPlayers = parseInt(bggGame.minplayers[ 0 ]) || null
 			game.maxPlayers = parseInt(bggGame.maxplayers[ 0 ]) || null
-			//TODO game.suggestedNumPlayers = bggGame.
 			game.playingTime = parseInt(bggGame.playingtime[ 0 ]) || null
 			game.minPlayingTime = parseInt(bggGame.minplaytime[ 0 ]) || null
 			game.maxPlayingTime = parseInt(bggGame.maxplaytime[ 0 ]) || null
-			game.description = bggGame.description || null
-			game.thumbnail = bggGame.thumbnail || null
+			game.description = bggGame.description[ 0 ] || null
+			game.thumbnail = bggGame.thumbnail[ 0 ] || null
 			game.image = bggGame.image[ 0 ]
 			game.categories = _getCategories( bggGame.boardgamecategory )
 			game.mechanics = _getMechanics( bggGame.boardgamemechanic )
@@ -84,33 +86,34 @@ export const bggAPIService = ():IbggAPIService => {
 	}
 
 	const _getCategories = ( categories:[] ): Category[] => {
-		return categories.map( ( category ) => {
+		const parsedCats = categories.map( ( category ) => {
 			return {
-				id: category.$.objectid,
+				id: parseInt(category.$.objectid),
 				name: category._
 			}
-			//TODO add to game_categories using gameId
 		} )
+		db.addCategoies(parsedCats)
+		return parsedCats
 	}
 
 	const _getMechanics = ( mechanics: [] ): Mechanic[] => {
-
-		return mechanics.map( ( mechanic ) => {
+		const parsedMechanics = mechanics.map( ( mechanic ) => {
 			return {
-				id: mechanic.$.objectid,
-				name: mechanic._
+				id: parseInt(mechanic.$.objectid),
+				name: mechanic._,
 			}
-			//TODO add to game_mechanics
 		} )
+		db.addMechanics( parsedMechanics )
+		return parsedMechanics
 	}
 
-	const _parseXML = async (body:string) => {
+	const _parseXML = async (body:string):Promise<IBggGames> => {
 		const parser = new xlm2js.Parser()
-		let bggJson;
+		let bggJson:unknown;
 		await parser.parseString(body, (err, result) => {
-			bggJson = result
+			bggJson = result as IBggGames
 		})
-		return bggJson
+		return bggJson as IBggGames
 	}
 
 	return {
