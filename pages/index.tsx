@@ -5,47 +5,46 @@ import styles from '../styles/Home.module.css'
 import { useEffect, useState } from 'react'
 
 const Home: NextPage = () => {
+	const importGames = async () => {
+		const gamesObj = await (await fetch('/api/importGames')).json()
+		console.log('GAMES', gamesObj)
+	}
 
-  const [name, setName] = useState('Jane Doe')
+	const addGamers = async () => {
+		const newGamers = await (await fetch('/api/addGamers')).json()
+		console.log('GAMERS', newGamers)
+	}
 
-  const getGames = async () => {
-    const nameObj = await (await fetch('/api/getLatestGames')).json()
-    console.log('NAME', nameObj)
-    setName(nameObj.name)
-  }
+	useEffect(() => {
+		importGames()
+	}, [])
 
-  useEffect(() => {
-    getGames()
-  }, [])
+	return (
+		<div className={styles.container}>
+			<Head>
+				<title>4 Seasons Gamers</title>
+				<meta name="description" content="Gaming for All Seasons" />
+				<link rel="icon" href="/favicon.ico" />
+			</Head>
 
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>4 Seasons Gamers</title>
-        <meta name="description" content="Gaming for All Seasons" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+			<main className={styles.main}>
+				<h1 className={styles.title}>Welcome to 4 Seasons Gamers!</h1>
+			</main>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to 4 Seasons Gamers!
-        </h1>
-      </main>
-
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
-    </div>
-  )
+			<footer className={styles.footer}>
+				<a
+					href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					Powered by{' '}
+					<span className={styles.logo}>
+						<Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
+					</span>
+				</a>
+			</footer>
+		</div>
+	)
 }
 
 export default Home

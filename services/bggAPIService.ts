@@ -1,14 +1,36 @@
 import got, { RequestError } from 'got'
 import xlm2js from 'xml2js'
+import { dbService } from './dbService'
+import { Category, Game, Gamer, Mechanic } from '@prisma/client'
+import { IBggAttribute, IBggFullGame, IBggGameName, IBggOwnerGames, IFullGame } from '~/types/custom'
+import { filter } from 'lodash'
+
+const db = new dbService()
 
 export interface IbggAPIService {
-	getUserGamesOwned: (username: string) => Promise<unknown>
+	importGames: () => Promise<Game[]>
 }
 
 export const bggAPIService = ():IbggAPIService => {
 	const baseUrl = 'https://api.geekdo.com/xmlapi'
 
-	const getUserGamesOwned = async (username: string):Promise<unknown> => {
+	const importGames = async ():Promise<IFullGame[]> => {
+		const gamers:Array<Gamer> = await db.getGamers()
+		let allGames:Array<IFullGame> = []
+		for (let i = 0; i < gamers.length; i++) {
+			const games:Array<IFullGame> = await _getUserGamesOwned(gamers[i].bggUsername, gamers[i].id)
+			allGames = [ ...allGames, ...games ]
+		}
+		for (let n = 0; n < allGames.length; n++) {
+			const insertedGame = await db.addGame(allGames[n])
+		}
+		//TODO do the db writes see nested writes -- https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#nested-writes
+		//SEE Connect or Create for relationals https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#connect-or-create-a-record
+		return allGames
+	}
+
+	const _getUserGamesOwned = async ( username: string, userid: number ): Promise<IFullGame[]> => {
+
 		const requestUrl = `${baseUrl}/collection/?username=${username}&own=1`
 		const body = await got.get(requestUrl,
 			{
@@ -16,19 +38,41 @@ export const bggAPIService = ():IbggAPIService => {
 				resolveBodyOnly: true
 			}
 		)
-		const { items: { item: ownerGames } } = await _parseXML(body)
+		const { items: { item: ownerGames } } = await _parseXML(body) as IBggOwnerGames
 
-		const bggGames = [] as []
+		const bggGames:IFullGame[] = []
 		for ( let i = 0; i < ownerGames.length; i++ ) {
-			const gameId = ownerGames[ i ].$.objectid
-			const gameData = await _getGameData( gameId )
-			const categories = gameData?.boardgames.boardgame[ 0 ].boardgamecategory
-			const mechanics = gameData?.boardgames.boardgame[0].boardgamemechanic
-			_setCategories( categories, gameId )
-			_setMechanics(mechanics, gameId)
+			const id = parseInt(ownerGames[ i ].$.objectid)
+			const gameData = await _getGameData( id ) as IBggFullGame
+			const bggGame = gameData?.boardgames.boardgame[ 0 ]
+			const game: IFullGame = {
+				id,
+				name: _getGameName( bggGame.name ),
+				publisher: bggGame.boardgamepublisher[ 0 ]._ || '',
+				yearPublished: parseInt( bggGame.yearpublished[ 0 ] ) || null,
+				minPlayers: parseInt( bggGame.minplayers[ 0 ] ) || null,
+				maxPlayers: parseInt( bggGame.maxplayers[ 0 ] ) || null,
+				playingTime: parseInt( bggGame.playingtime[ 0 ] ) || null,
+				minPlayingTime: parseInt( bggGame.minplaytime[ 0 ] ) || null,
+				maxPlayingTime: parseInt( bggGame.maxplaytime[ 0 ] ) || null,
+				description: bggGame.description[ 0 ] || null,
+				thumbnail: bggGame.thumbnail[ 0 ] || null,
+				image: bggGame.image[ 0 ],
+				categories: _getCategories( bggGame.boardgamecategory || [] ),
+				mechanics: _getMechanics( bggGame.boardgamemechanic || [] ),
+				gamer: userid
+			}
+			bggGames.push(game)
 		}
 
-		return bggGames;
+		return bggGames
+	}
+
+	const _getGameName = ( names: IBggGameName[] ) => {
+		const correctNames = filter( names, ( nameObj ) => {
+			return nameObj.$.primary === 'true'
+		} )
+		return correctNames[0]._
 	}
 
 	const _getGameData = async (id: number) => {
@@ -43,33 +87,31 @@ export const bggAPIService = ():IbggAPIService => {
 		return gameData
 	}
 
-	const _setCategories = (categories:[], gameId:number) => {
-		//TODO add to categories, if not exists
-		const categoriesParsed = categories.map( ( category ) => {
+	const _getCategories = ( categories:IBggAttribute[] ): Category[] => {
+		const parsedCats = categories.map( ( category ) => {
 			return {
-				id: category.$.objectid,
+				id: parseInt(category.$.objectid),
 				name: category._
 			}
-			//TODO add to game_categories using gameId
 		} )
-		console.log('PARSED CATEGORIES', categoriesParsed)
+		db.addCategories(parsedCats)
+		return parsedCats
 	}
 
-	const _setMechanics = ( mechanics: [], gameId: number ) => {
-		//TODO add to mechanics, if not exists
-		const mechanicsParsed = mechanics.map( ( mechanic ) => {
+	const _getMechanics = ( mechanics:IBggAttribute[] ): Mechanic[] => {
+		const parsedMechanics = mechanics.map( ( mechanic ) => {
 			return {
-				id: mechanic.$.objectid,
-				name: mechanic._
+				id: parseInt(mechanic.$.objectid),
+				name: mechanic._,
 			}
-			//TODO add to game_mechanics
 		} )
-		console.log('MECHANICS PARSED', mechanicsParsed)
+		db.addMechanics( parsedMechanics )
+		return parsedMechanics
 	}
 
-	const _parseXML = async (body:string) => {
+	const _parseXML = async (body:string):Promise<unknown> => {
 		const parser = new xlm2js.Parser()
-		let bggJson;
+		let bggJson:unknown;
 		await parser.parseString(body, (err, result) => {
 			bggJson = result
 		})
@@ -77,6 +119,6 @@ export const bggAPIService = ():IbggAPIService => {
 	}
 
 	return {
-		getUserGamesOwned
+		importGames
 	}
 }
