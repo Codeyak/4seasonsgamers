@@ -1,6 +1,6 @@
 import { Category, Game, Gamer, Mechanic, PrismaClient } from '@prisma/client';
 import omit from 'lodash/omit'
-import { IFullGame, IRelationalCategory, IRelationalMechanic } from '~/types/custom';
+import { IFullGame } from '~/types/custom';
 
 const prisma = new PrismaClient()
 
