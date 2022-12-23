@@ -42,28 +42,30 @@ export const bggAPIService = ():IbggAPIService => {
 
 		const bggGames:IFullGame[] = []
 		for ( let i = 0; i < ownerGames.length; i++ ) {
-			const game:IFullGame = {}
-			game.id = parseInt(ownerGames[ i ].$.objectid)
-			const gameData = await _getGameData( game.id ) as IBggFullGame
+			const id = parseInt(ownerGames[ i ].$.objectid)
+			const gameData = await _getGameData( id ) as IBggFullGame
 			const bggGame = gameData?.boardgames.boardgame[ 0 ]
-			game.name = _getGameName( bggGame.name )
-			game.publisher = bggGame.boardgamepublisher[ 0 ]._ || ''
-			game.yearPublished = parseInt(bggGame.yearpublished[ 0 ]) || null
-			game.minPlayers = parseInt(bggGame.minplayers[ 0 ]) || null
-			game.maxPlayers = parseInt(bggGame.maxplayers[ 0 ]) || null
-			game.playingTime = parseInt(bggGame.playingtime[ 0 ]) || null
-			game.minPlayingTime = parseInt(bggGame.minplaytime[ 0 ]) || null
-			game.maxPlayingTime = parseInt(bggGame.maxplaytime[ 0 ]) || null
-			game.description = bggGame.description[ 0 ] || null
-			game.thumbnail = bggGame.thumbnail[ 0 ] || null
-			game.image = bggGame.image[ 0 ]
-			game.categories = _getCategories( bggGame.boardgamecategory || [])
-			game.mechanics = _getMechanics( bggGame.boardgamemechanic || [])
-			game.gamer = userid
+			const game: IFullGame = {
+				id,
+				name: _getGameName( bggGame.name ),
+				publisher: bggGame.boardgamepublisher[ 0 ]._ || '',
+				yearPublished: parseInt( bggGame.yearpublished[ 0 ] ) || null,
+				minPlayers: parseInt( bggGame.minplayers[ 0 ] ) || null,
+				maxPlayers: parseInt( bggGame.maxplayers[ 0 ] ) || null,
+				playingTime: parseInt( bggGame.playingtime[ 0 ] ) || null,
+				minPlayingTime: parseInt( bggGame.minplaytime[ 0 ] ) || null,
+				maxPlayingTime: parseInt( bggGame.maxplaytime[ 0 ] ) || null,
+				description: bggGame.description[ 0 ] || null,
+				thumbnail: bggGame.thumbnail[ 0 ] || null,
+				image: bggGame.image[ 0 ],
+				categories: _getCategories( bggGame.boardgamecategory || [] ),
+				mechanics: _getMechanics( bggGame.boardgamemechanic || [] ),
+				gamer: userid
+			}
 			bggGames.push(game)
 		}
 
-		return bggGames;
+		return bggGames
 	}
 
 	const _getGameName = ( names: IBggGameName[] ) => {
