@@ -2,7 +2,7 @@ import got, { RequestError } from 'got'
 import xlm2js from 'xml2js'
 import { dbService } from './dbService'
 import { Category, Game, Gamer, Mechanic } from '@prisma/client'
-import { IBggGames, IFullGame, IOwnerGame, IRelationalCategory, IRelationalMechanic } from '~/types/custom'
+import { IBggAttribute, IBggFullGame, IBggGameName, IBggOwnerGames, IFullGame } from '~/types/custom'
 import { filter } from 'lodash'
 
 const db = new dbService()
@@ -38,16 +38,16 @@ export const bggAPIService = ():IbggAPIService => {
 				resolveBodyOnly: true
 			}
 		)
-		const { items: { item: ownerGames } } = await _parseXML(body)
+		const { items: { item: ownerGames } } = await _parseXML(body) as IBggOwnerGames
 
 		const bggGames:IFullGame[] = []
 		for ( let i = 0; i < ownerGames.length; i++ ) {
 			const game:IFullGame = {}
 			game.id = parseInt(ownerGames[ i ].$.objectid)
-			const gameData = await _getGameData( game.id )
+			const gameData = await _getGameData( game.id ) as IBggFullGame
 			const bggGame = gameData?.boardgames.boardgame[ 0 ]
 			game.name = _getGameName( bggGame.name )
-			game.publisher = bggGame.boardgamepublisher[ 0 ]._ || null
+			game.publisher = bggGame.boardgamepublisher[ 0 ]._ || ''
 			game.yearPublished = parseInt(bggGame.yearpublished[ 0 ]) || null
 			game.minPlayers = parseInt(bggGame.minplayers[ 0 ]) || null
 			game.maxPlayers = parseInt(bggGame.maxplayers[ 0 ]) || null
@@ -57,8 +57,8 @@ export const bggAPIService = ():IbggAPIService => {
 			game.description = bggGame.description[ 0 ] || null
 			game.thumbnail = bggGame.thumbnail[ 0 ] || null
 			game.image = bggGame.image[ 0 ]
-			game.categories = _getCategories( bggGame.boardgamecategory )
-			game.mechanics = _getMechanics( bggGame.boardgamemechanic )
+			game.categories = _getCategories( bggGame.boardgamecategory || [])
+			game.mechanics = _getMechanics( bggGame.boardgamemechanic || [])
 			game.gamer = userid
 			bggGames.push(game)
 		}
@@ -66,7 +66,7 @@ export const bggAPIService = ():IbggAPIService => {
 		return bggGames;
 	}
 
-	const _getGameName = ( names: [] ) => {
+	const _getGameName = ( names: IBggGameName[] ) => {
 		const correctNames = filter( names, ( nameObj ) => {
 			return nameObj.$.primary === 'true'
 		} )
@@ -85,7 +85,7 @@ export const bggAPIService = ():IbggAPIService => {
 		return gameData
 	}
 
-	const _getCategories = ( categories:[] ): Category[] => {
+	const _getCategories = ( categories:IBggAttribute[] ): Category[] => {
 		const parsedCats = categories.map( ( category ) => {
 			return {
 				id: parseInt(category.$.objectid),
@@ -96,7 +96,7 @@ export const bggAPIService = ():IbggAPIService => {
 		return parsedCats
 	}
 
-	const _getMechanics = ( mechanics: [] ): Mechanic[] => {
+	const _getMechanics = ( mechanics:IBggAttribute[] ): Mechanic[] => {
 		const parsedMechanics = mechanics.map( ( mechanic ) => {
 			return {
 				id: parseInt(mechanic.$.objectid),
@@ -107,13 +107,13 @@ export const bggAPIService = ():IbggAPIService => {
 		return parsedMechanics
 	}
 
-	const _parseXML = async (body:string):Promise<IBggGames> => {
+	const _parseXML = async (body:string):Promise<unknown> => {
 		const parser = new xlm2js.Parser()
 		let bggJson:unknown;
 		await parser.parseString(body, (err, result) => {
-			bggJson = result as IBggGames
+			bggJson = result
 		})
-		return bggJson as IBggGames
+		return bggJson
 	}
 
 	return {

@@ -6,10 +6,11 @@ export interface IFullGame extends Game {
 	gamer: number
 }
 
-interface IBggGameName {
+export interface IBggGameName {
 	_: string
 	$: {
 		sortindex: string
+		primary?: string
 	}
 }
 
@@ -59,7 +60,7 @@ interface IBggStats {
 export interface IOwnerGame {
 	$: {
 		callid?: string
-		objectid?: string
+		objectid: string
 		objecttype?: string
 		subtype?: string
 	}
@@ -72,7 +73,7 @@ export interface IOwnerGame {
 	yearpublished: string[]
 }
 
-export interface IBggGames {
+export interface IBggOwnerGames {
 	items: {
 		$: {
 			pubdate?: string
@@ -80,5 +81,63 @@ export interface IBggGames {
 			totalitems?: string
 		}
 		item: IOwnerGame[] | []
+	}
+}
+
+export interface IBggAttribute {
+	_: string
+	$: {
+		objectid: string
+	}
+}
+
+interface IBggPoll {
+	$: {
+		name: string
+		title: string
+		totalvotes: string
+	}
+	results: []
+}
+
+export interface IBggFullGame {
+	boardgames: {
+		$: {
+			termsofuse?: string
+		}
+		boardgame: [
+			{
+				$: {
+					objectid: string
+				}
+				age?: string[]
+				boardgameaccessory?: IBggAttribute[]
+				boardgameartist?: IBggAttribute[]
+				boardgamecategory?: IBggAttribute[]
+				boardgamedesigner?: IBggAttribute[]
+				boardgameeditor?: IBggAttribute[]
+				boardgameexpansion?: IBggAttribute[]
+				boardgamefamily?: IBggAttribute[]
+				boardgamehonor?: IBggAttribute[]
+				boardgameimplementation?: IBggAttribute[]
+				boardgamemechanic?: IBggAttribute[]
+				boardgamepodcastepisode?: IBggAttribute[]
+				boardgamepublisher: IBggAttribute[]
+				boardgamesubdomain?: IBggAttribute[]
+				boardgameversion?: IBggAttribute[]
+				commerceweblink?: IBggAttribute[]
+				description: string[]
+				image: string[]
+				maxplayers: string[]
+				maxplaytime: string[]
+				minplayers: string[]
+				minplaytime: string[]
+				name: IBggGameName[]
+				playingtime: string[]
+				poll?: IBggPoll[]
+				thumbnail: string[]
+				yearpublished: string[]
+			}
+		]
 	}
 }
