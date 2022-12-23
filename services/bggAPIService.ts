@@ -94,7 +94,7 @@ export const bggAPIService = ():IbggAPIService => {
 				name: category._
 			}
 		} )
-		db.addCategoies(parsedCats)
+		db.addCategories(parsedCats)
 		return parsedCats
 	}
 

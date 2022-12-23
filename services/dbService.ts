@@ -1,4 +1,4 @@
-import { Category, Game, Gamer, Mechanic, PrismaClient } from '@prisma/client';
+import { Category, Game, Gamer, Mechanic, Prisma, PrismaClient } from '@prisma/client';
 import omit from 'lodash/omit'
 import { IFullGame } from '~/types/custom';
 
@@ -7,8 +7,9 @@ const prisma = new PrismaClient()
 export interface IdbService {
 	addGamer: ( gamer: Gamer ) => Promise<Gamer>
 	getGamers: () => Promise<Gamer[]>
-	addGame: ( bggGame ) => Promise<Game>
-	upsertC
+	addGame: ( fullGame:IFullGame ) => Promise<Game>
+	addCategories: ( categories: Category[] ) => Promise<Prisma.BatchPayload>
+	addMechanics: ( mechanics: Mechanic[]) => Promise<Prisma.BatchPayload>
 }
 
 export class dbService implements IdbService {
@@ -74,7 +75,7 @@ export class dbService implements IdbService {
 		return insertedGame
 	}
 
-	addCategoies = async ( categories: Category[] ) => {
+	addCategories = async ( categories: Category[] ):Promise<Prisma.BatchPayload> => {
 		const insertedCategories = await prisma.category.createMany( {
 			data: categories,
 			skipDuplicates: true
@@ -82,7 +83,7 @@ export class dbService implements IdbService {
 		return insertedCategories
 	}
 
-	addMechanics = async ( mechanics: Mechanic[] ) => {
+	addMechanics = async ( mechanics: Mechanic[] ):Promise<Prisma.BatchPayload> => {
 		const insesrtedMechanics = await prisma.mechanic.createMany( {
 			data: mechanics,
 			skipDuplicates: true
