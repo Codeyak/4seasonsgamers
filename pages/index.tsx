@@ -5,11 +5,11 @@ import styles from '../styles/Home.module.css'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchGames, selectedGames } from '~/store/gamesSlice'
-import { AppDispatch } from '~/store'
+import { AppDispatch, RootState } from '~/store'
 
 const Home: NextPage = () => {
 	const dispatch = useDispatch<AppDispatch>()
-	const gamesStatus = useSelector( state => state.games.status )
+	const gamesStatus = useSelector( (state:RootState) => state.games.status )
 	const games = useSelector( selectedGames )
 	console.log( 'GAMES', games )
 
