@@ -6,28 +6,17 @@ const prisma = new PrismaClient()
 
 export interface IdbService {
 	addGamer: ( gamer: Gamer ) => Promise<Gamer>
-	getGamers: () => Promise<Gamer[]>
 	addGame: ( fullGame:IFullGame ) => Promise<Game>
 	addCategories: ( categories: Category[] ) => Promise<Prisma.BatchPayload>
-	addMechanics: ( mechanics: Mechanic[]) => Promise<Prisma.BatchPayload>
+	addMechanics: ( mechanics: Mechanic[] ) => Promise<Prisma.BatchPayload>
+	getGamers: () => Promise<Gamer[]>
+	getGames: () => Promise<Game[]>
 }
 
 export class dbService implements IdbService {
 	addGamer = async ( gamer: Gamer ): Promise<Gamer> => {
 		const data = { data: omit(gamer, ['id'])}
 		return await prisma.gamer.create(data)
-	}
-
-	getGamers = async (): Promise<Gamer[]> => {
-		const gamers = await prisma.gamer.findMany( {
-			select: {
-				id: true,
-				firstName: true,
-				lastName: true,
-				bggUsername: true
-			}
-		} ) as Gamer[]
-		return gamers
 	}
 
 	addGame = async (fullGame:IFullGame): Promise<Game> => {
@@ -89,5 +78,22 @@ export class dbService implements IdbService {
 			skipDuplicates: true
 		} )
 		return insesrtedMechanics
+	}
+
+	getGamers = async (): Promise<Gamer[]> => {
+		const gamers = await prisma.gamer.findMany( {
+			select: {
+				id: true,
+				firstName: true,
+				lastName: true,
+				bggUsername: true
+			}
+		} ) as Gamer[]
+		return gamers
+	}
+
+	getGames = async (): Promise<Game[]> => {
+		const games = await prisma.game.findMany()
+		return games
 	}
 }

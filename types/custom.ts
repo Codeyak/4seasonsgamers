@@ -141,3 +141,10 @@ export interface IBggFullGame {
 		]
 	}
 }
+
+export interface gamesState {
+	items: Game[]
+	status: string
+	error: string | unknown
+	page: number | unknown
+}
