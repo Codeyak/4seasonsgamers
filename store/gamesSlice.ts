@@ -24,6 +24,7 @@ const gamesSlice = createSlice( {
 				state.status = 'loading'
 			} )
 			.addCase( fetchGames.fulfilled, ( state, action ) => {
+				state.status = 'succeeded'
 				state.items = action.payload
 			} )
 			.addCase( fetchGames.rejected, ( state, action ) => {
