@@ -39,7 +39,7 @@ const GameCard = (props: IProps): JSX.Element => {
 		if (numWords > length) {
 			return words?.splice(0, length).join(" ") + "..."
 		}
-		return text
+		return text || '' as string
 	}
 	const description = maybeTruncateDescription(cleanDescription, 60)
 
