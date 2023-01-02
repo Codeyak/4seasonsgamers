@@ -3,16 +3,9 @@ import { createTheme } from '@mui/material';
 
 const theme = createTheme( {
 	palette: {
-		mode: 'light'
+		mode: 'dark'
 	},
 	components: {
-		MuiCssBaseline: {
-			styleOverrides: {
-				body: {
-					backgroundColor: grey[100]
-				}
-			}
-		},
 		MuiAutocomplete: {
 			styleOverrides: {
 				listbox: {

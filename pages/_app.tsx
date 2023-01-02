@@ -4,6 +4,7 @@ import { AppProps } from 'next/app'
 import Head from 'next/head'
 import Image from 'next/image'
 import theme from '~/styles/theme'
+import HeaderBar from '~/components/HeaderBar'
 import createEmotionCache from '~/utilities/createEmotionCache'
 import { CacheProvider } from '@emotion/react'
 import { EmotionCache } from '@emotion/react'
@@ -24,7 +25,7 @@ const MyApp = ({ Component, emotionCache = clientSideEmotionCache, pageProps }: 
 				<title>4 Seasons Gamers</title>
 				<link
 					rel="icon"
-					href="./favicon.ico"
+					href="/favicon.ico"
 				/>
 				<meta
 					name="viewport"
@@ -34,8 +35,9 @@ const MyApp = ({ Component, emotionCache = clientSideEmotionCache, pageProps }: 
 			<StoreProvider store={store}>
 				<CacheProvider value={ emotionCache }>
 					<ThemeProvider theme={theme}>
-							<CssBaseline />
-							<Component {...pageProps} />
+						<CssBaseline />
+						<HeaderBar />
+						<Component {...pageProps} />
 					</ThemeProvider>
 				</CacheProvider>
 			</StoreProvider>
