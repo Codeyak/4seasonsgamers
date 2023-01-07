@@ -29,7 +29,7 @@ const gamesSlice = createSlice( {
 			} )
 			.addCase( fetchGames.rejected, ( state, action ) => {
 				state.status = 'failed'
-				state.error = action.error.message
+				state.error = action.error.message || ''
 			})
 	}
 } )
@@ -43,7 +43,14 @@ export default gamesSlice.reducer
 export const fetchGames = createAsyncThunk(
 	'games/fetchGames',
 	async () => {
-		const { games } = await ( await fetch( '/api/getGames' ) ).json()
-		return games
+		try {
+			const data = await ( await fetch( '/api/getGames' ) ).json()
+			if ( data.status === 'error' ) {
+				throw new Error(data.error.message)
+			}
+			return data.games
+		} catch (error) {
+			throw error
+		}
 	}
 )

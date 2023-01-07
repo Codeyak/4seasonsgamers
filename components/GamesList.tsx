@@ -9,6 +9,7 @@ const GamesList = (): JSX.Element => {
 	const dispatch = useDispatch<AppDispatch>()
 	const games = useSelector( selectedGames )
 	const gamesStatus = useSelector( ( state: RootState ) => state.games.status )
+	const error = useSelector( ( state:RootState ) => state.games.error)
 
 	useEffect( () => {
 		console.log('STATUS', gamesStatus)
@@ -21,13 +22,15 @@ const GamesList = (): JSX.Element => {
 
 	if (gamesStatus === 'loading') {
 		content = <Typography>Loading...</Typography>
-	} else if (gamesStatus == 'succeeded') {
+	} else if (gamesStatus === 'succeeded') {
 		content = games.map( ( game ) => {
 			return <GameCard
 						key={game.id}
 						game={game}
 					/>
 		})
+	} else if ( gamesStatus === 'failed' ) {
+		content = <Typography>{ error }</Typography>
 	}
 
 	return (

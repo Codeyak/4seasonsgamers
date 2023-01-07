@@ -10,7 +10,7 @@ export interface IdbService {
 	addCategories: ( categories: Category[] ) => Promise<Prisma.BatchPayload>
 	addMechanics: ( mechanics: Mechanic[] ) => Promise<Prisma.BatchPayload>
 	getGamers: () => Promise<Gamer[]>
-	getGames: () => Promise<Game[]>
+	getGames: () => Promise<unknown>
 }
 
 export class dbService implements IdbService {
@@ -92,8 +92,12 @@ export class dbService implements IdbService {
 		return gamers
 	}
 
-	getGames = async (): Promise<Game[]> => {
-		const games = await prisma.game.findMany()
-		return games
+	getGames = async (): Promise<unknown> => {
+		try {
+			const games = await prisma.game.findMany()
+			return games
+		} catch (error) {
+			return error
+		}
 	}
 }

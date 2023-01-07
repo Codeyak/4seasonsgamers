@@ -8,6 +8,14 @@ export default async function handler (
 	req: NextApiRequest,
 	res: NextApiResponse
 ) {
-	const games = await db.getGames()
-	res.status(200).json({ status: 'ok', games })
+	const data = await db.getGames()
+	if ( data instanceof Error ) {
+		console.error( 'Error getting games', data )
+		const error = {
+			message: data.message
+		}
+		res.status(500).json({status: 'error', error })
+	} else {
+		res.status(200).json({ status: 'ok', games: data })
+	}
 }
