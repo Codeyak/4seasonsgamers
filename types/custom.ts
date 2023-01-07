@@ -145,6 +145,6 @@ export interface IBggFullGame {
 export interface gamesState {
 	items: Game[]
 	status: string
-	error: string | unknown
+	error: string | null
 	page: number | unknown
 }
