@@ -1,4 +1,4 @@
-import { Box, CardMedia, Grid, Paper, Typography, useMediaQuery } from '@mui/material'
+import { Box, CardMedia, Divider, Grid, Link, Paper, Typography, useMediaQuery } from '@mui/material'
 import { Theme } from '@mui/material/styles'
 import { Game } from '@prisma/client'
 
@@ -41,7 +41,7 @@ const GameCard = (props: IProps): JSX.Element => {
 		}
 		return text || '' as string
 	}
-	const description = maybeTruncateDescription(cleanDescription, 60)
+	const description = maybeTruncateDescription(cleanDescription, 80)
 
 	const GameCardThumbnail = (): JSX.Element => {
 		return (
@@ -61,8 +61,7 @@ const GameCard = (props: IProps): JSX.Element => {
 					marginLeft: {
 						xs: 2,
 						lg: 0,
-					},
-					backgroundColor: 'grey.500',
+					}
 				} }
 			>
 				<CardMedia
@@ -91,8 +90,7 @@ const GameCard = (props: IProps): JSX.Element => {
 						fontSize: {
 							xs: '1.1rem',
 							lg: '1.25rem'
-						},
-						color: 'grey.800'
+						}
 					} }
 					variant="h6"
 					title={ game.name }
@@ -107,33 +105,44 @@ const GameCard = (props: IProps): JSX.Element => {
 						},
 						marginBottom: {
 							lg: '0.5rem'
-						},
-						color: 'grey.800'
+						}
 					} }
 					variant="body2"
 					gutterBottom
 				>
 					<div dangerouslySetInnerHTML={{ __html: description }}></div>
 				</Typography>
-				<Typography
-					variant="caption"
-					sx={ {
-						fontSize: {
-							xs: '0.875rem',
-							lg: '0.75rem'
-						},
-						fontWeight: {
-							lg: 'bold'
-						},
-						color: 'grey.800'
-					} }
-					noWrap={ isMobileOrTablet }
-				>
-					Published: { game.yearPublished }
-					Publisher: { game.publisher }
-					# Players: { game.minPlayers } - {game.maxPlayers}
-				</Typography>
 			</div>
+		)
+	}
+
+	const GameCardPrimaryMeta = (): JSX.Element => {
+		return (
+			<>
+				<Link
+					variant="subtitle2"
+					underline="hover"
+					sx={{ cursor: 'pointer' }}
+				>
+					<strong>Owner</strong>
+				</Link>
+				<Typography
+					variant="body2"
+					noWrap
+				>
+					<strong>Published:</strong> {game.yearPublished}
+				</Typography>
+				<Typography
+					variant="body2"
+				>
+					<strong>Publisher:</strong> {game.publisher}
+				</Typography>
+				<Typography
+					variant="body2"
+				>
+					<strong>#Players:</strong> {`${game.minPlayers} - ${game.maxPlayers}`}
+				</Typography>
+			</>
 		)
 	}
 
@@ -147,7 +156,6 @@ const GameCard = (props: IProps): JSX.Element => {
 		>
 			<Grid
 				sx={ {
-					backgroundColor:'grey.300',
 					paddingTop: 3,
 					paddingBottom: 3,
 					paddingLeft: 2,
@@ -165,11 +173,36 @@ const GameCard = (props: IProps): JSX.Element => {
 			>
 				<Grid
 					item
-					xs={ 12 }
-					lg={ 8 }
+					xs={ 13 }
+					lg={ 9 }
 				>
 					<GameCardThumbnail />
 					<GameCardDetails />
+				</Grid>
+				{isMobileOrTablet && (
+					<Divider
+						sx={ {
+							width: '100%',
+							backgroundColor: 'grey.400',
+							marginTop: 1,
+							marginbottom: 1,
+							marginRight: 0,
+							marginLeft: 0
+						} }
+					/>
+				)}
+				<Grid
+					sx={ {
+						'.MuiTypography-root': {
+							lineHeight: 2,
+						}
+					} }
+					item
+					xs={ 7 }
+					md={ 10 }
+					lg={ 3 }
+				>
+					<GameCardPrimaryMeta />
 				</Grid>
 			</Grid>
 		</Box>
