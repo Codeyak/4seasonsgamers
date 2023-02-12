@@ -1,16 +1,16 @@
+import getConfig from 'next/config';
 import { Category, Game, Gamer, Mechanic, Prisma, PrismaClient } from '@prisma/client';
 import omit from 'lodash/omit'
 import { IFullGame } from '~/types/custom';
 
 const prisma = new PrismaClient()
-
 export interface IdbService {
 	addGamer: ( gamer: Gamer ) => Promise<Gamer>
-	addGame: ( fullGame:IFullGame ) => Promise<Game>
+	addGame: ( fullGame: IFullGame ) => Promise<Game>
 	addCategories: ( categories: Category[] ) => Promise<Prisma.BatchPayload>
 	addMechanics: ( mechanics: Mechanic[] ) => Promise<Prisma.BatchPayload>
 	getGamers: () => Promise<Gamer[]>
-	getGames: () => Promise<unknown>
+	getGames: (page: number) => Promise<unknown>
 }
 
 export class dbService implements IdbService {
@@ -92,10 +92,40 @@ export class dbService implements IdbService {
 		return gamers
 	}
 
-	getGames = async (): Promise<unknown> => {
+	getGames = async (page: number): Promise<unknown> => {
+		const { publicRuntimeConfig } = getConfig()
+		const { perPage } = publicRuntimeConfig
+		const skip = (page - 1) * perPage
 		try {
-			const games = await prisma.game.findMany()
-			return games
+			const result = await prisma.$transaction( [
+				prisma.game.count(),
+				prisma.game.findMany( {
+					skip,
+					take: perPage,
+					orderBy: [
+						{
+							name: 'asc'
+						}
+					],
+					include: {
+						gamers: {
+							distinct: ['gamerId'],
+							include: {
+								gamers: {
+									select: {
+										firstName: true
+									}
+								}
+							}
+						}
+					}
+				})
+			])
+			const data = {
+				numResults: result[ 0 ],
+				games: result[1]
+			}
+			return data
 		} catch (error) {
 			return error
 		}

@@ -1,4 +1,4 @@
-import { Category, Game, Mechanic } from '@prisma/client';
+import { Category, Game, GameGamer, Gamer, Mechanic } from '@prisma/client';
 
 export interface IFullGame extends Game {
 	mechanics: Mechanic[]
@@ -142,9 +142,21 @@ export interface IBggFullGame {
 	}
 }
 
+interface IGameGamer extends GameGamer {
+	gamers: Gamer[]
+}
+
+interface IGame extends Game {
+	gamers: IGameGamer[]
+}
+
 export interface gamesState {
-	items: Game[]
+	items: IGame[]
+	numResults: number
 	status: string
 	error: string | null
-	page: number | unknown
+}
+
+export interface filtersState {
+	page: number
 }

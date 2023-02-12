@@ -2,9 +2,6 @@
 const nextConfig = {
 	reactStrictMode: true,
 	swcMinify: true,
-}
-
-module.exports = {
 	serverRuntimeConfig: {
 		gamers: [
 			{
@@ -14,6 +11,9 @@ module.exports = {
 				bggUsername: 'baldgoat',
 			},
 		],
+	},
+	publicRuntimeConfig: {
+		perPage: 25,
 	},
 }
 

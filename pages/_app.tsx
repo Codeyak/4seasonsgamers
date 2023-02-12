@@ -2,7 +2,6 @@ import { CssBaseline } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { AppProps } from 'next/app'
 import Head from 'next/head'
-import Image from 'next/image'
 import theme from '~/styles/theme'
 import HeaderBar from '~/components/HeaderBar'
 import createEmotionCache from '~/utilities/createEmotionCache'
@@ -41,18 +40,6 @@ const MyApp = ({ Component, emotionCache = clientSideEmotionCache, pageProps }: 
 					</ThemeProvider>
 				</CacheProvider>
 			</StoreProvider>
-			<footer>
-				<a
-					href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Powered by{' '}
-					<span>
-						<Image src="/vercel.svg" alt="Vercel Logo" width={72} height={16} />
-					</span>
-				</a>
-			</footer>
 		</>
 	)
 }
