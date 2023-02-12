@@ -143,7 +143,7 @@ export interface IBggFullGame {
 }
 
 interface IGameGamer extends GameGamer {
-	gamers: Gamer[]
+	gamers: Gamer
 }
 
 export interface IGame extends Game {

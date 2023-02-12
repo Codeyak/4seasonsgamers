@@ -10,7 +10,6 @@ import { AppDispatch, RootState } from '~/store'
 import { useRouter } from 'next/router'
 import { updatePage } from '~/store/filtersSlice'
 import { filtersState } from '~/types/custom'
-import getConfig from 'next/config'
 
 interface IProps {
 	queryStringfilters: filtersState
