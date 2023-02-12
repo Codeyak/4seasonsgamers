@@ -5,12 +5,15 @@ import { AppDispatch, RootState } from '~/store'
 import { fetchGames, selectedGames } from '~/store/gamesSlice'
 import { updatePage } from '~/store/filtersSlice'
 import GameCard from './GameCard'
+import getConfig from 'next/config'
 
 const GamesList = (): JSX.Element => {
+	const { publicRuntimeConfig } = getConfig()
+	const { perPage } = publicRuntimeConfig
 	const dispatch = useDispatch<AppDispatch>()
 	const games = useSelector( selectedGames )
 	const numResults = useSelector( ( state: RootState ) => state.games.numResults )
-	const numPages = Math.ceil( numResults / 5 )
+	const numPages = Math.ceil( numResults / perPage )
 	const gamesStatus = useSelector( ( state: RootState ) => state.games.status )
 	const error = useSelector( ( state: RootState ) => state.games.error )
 	const page = useSelector( ( state: RootState ) => state.filters.page ) as number
