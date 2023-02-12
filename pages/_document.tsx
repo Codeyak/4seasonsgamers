@@ -42,7 +42,7 @@ class MyDocument extends Document {
 					<link
 						rel="icon"
 						type="image/x-icon"
-						href="/search/favicon.ico"
+						href="/favicon.ico"
 					/>
 					{/* @ts-ignore */}
 					{ this.props.emotionStyleTags }

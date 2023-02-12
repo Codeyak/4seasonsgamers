@@ -1,9 +1,9 @@
 import { Box, CardMedia, Divider, Grid, Link, Paper, Typography, useMediaQuery } from '@mui/material'
 import { Theme } from '@mui/material/styles'
-import { Game } from '@prisma/client'
+import { IGame } from '~/types/custom'
 
 interface IProps {
-	game: Game
+	game: IGame
 }
 
 /**
@@ -22,6 +22,7 @@ interface IProps {
 
 const GameCard = (props: IProps): JSX.Element => {
 	const { game } = props
+	const owner = game.gamers[0].gamers.firstName
 	const isMobileOrTablet = useMediaQuery( ( theme: Theme ) => theme.breakpoints.down( 'md' ) )
 
 	const containsWordAboveCharacterLimit = (text: string | null, length: number):boolean => {
@@ -110,13 +111,14 @@ const GameCard = (props: IProps): JSX.Element => {
 					variant="body2"
 					gutterBottom
 				>
-					<div dangerouslySetInnerHTML={{ __html: description }}></div>
+					<span dangerouslySetInnerHTML={{ __html: description }}></span>
 				</Typography>
 			</div>
 		)
 	}
 
 	const GameCardPrimaryMeta = (): JSX.Element => {
+		const numPlayers = game.minPlayers === game.maxPlayers ? game.minPlayers : `${game.minPlayers} - ${game.maxPlayers}`
 		return (
 			<>
 				<Link
@@ -124,7 +126,7 @@ const GameCard = (props: IProps): JSX.Element => {
 					underline="hover"
 					sx={{ cursor: 'pointer' }}
 				>
-					<strong>Owner</strong>
+					<strong>Owner:</strong> {owner}
 				</Link>
 				<Typography
 					variant="body2"
@@ -140,7 +142,7 @@ const GameCard = (props: IProps): JSX.Element => {
 				<Typography
 					variant="body2"
 				>
-					<strong>#Players:</strong> {`${game.minPlayers} - ${game.maxPlayers}`}
+					<strong>#Players:</strong> {numPlayers}
 				</Typography>
 			</>
 		)
