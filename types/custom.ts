@@ -146,7 +146,7 @@ interface IGameGamer extends GameGamer {
 	gamers: Gamer[]
 }
 
-interface IGame extends Game {
+export interface IGame extends Game {
 	gamers: IGameGamer[]
 }
 
